@@ -3,6 +3,8 @@ namespace Sentinel.Logs
     using System;
     using System.Collections.Generic;
     using System.ComponentModel;
+    using System.Diagnostics;
+    using System.Linq;
 
     using Sentinel.Classification.Interfaces;
     using Sentinel.Interfaces;
@@ -13,6 +15,8 @@ namespace Sentinel.Logs
     public class Log : ViewModelBase, ILogger
     {
         private readonly IClassifyingService<IClassifier> classifier;
+
+        private readonly IUserPreferences preferences;
 
         private readonly List<ILogEntry> entries = new List<ILogEntry>();
 
@@ -28,6 +32,7 @@ namespace Sentinel.Logs
             NewEntries = newEntries;
 
             classifier = ServiceLocator.Instance.Get<IClassifyingService<IClassifier>>();
+            preferences = ServiceLocator.Instance.Get<IUserPreferences>();
 
             // Observe the NewEntries to maintain a full history.
             PropertyChanged += OnPropertyChanged;
@@ -37,34 +42,28 @@ namespace Sentinel.Logs
 
         public bool Enabled
         {
-            get
-            {
-                return enabled;
-            }
+            get => enabled;
 
             set
             {
                 if (enabled != value)
                 {
                     enabled = value;
-                    OnPropertyChanged("Enabled");
+                    OnPropertyChanged(nameof(Enabled));
                 }
             }
         }
 
         public string Name
         {
-            get
-            {
-                return name;
-            }
+            get => name;
 
             set
             {
                 if (value != name)
                 {
                     name = value;
-                    OnPropertyChanged("Name");
+                    OnPropertyChanged(nameof(Name));
                 }
             }
         }
@@ -83,24 +82,24 @@ namespace Sentinel.Logs
                 newEntries.Clear();
             }
 
-            OnPropertyChanged("Entries");
-            OnPropertyChanged("NewEntries");
+            OnPropertyChanged(nameof(Entries));
+            OnPropertyChanged(nameof(NewEntries));
             GC.Collect();
         }
 
-        public void AddBatch(Queue<ILogEntry> entries)
+        public void AddBatch(Queue<ILogEntry> incomingEntries)
         {
-            if (!enabled || entries.Count <= 0)
+            if (!enabled || incomingEntries.Count <= 0)
             {
                 return;
             }
 
             var processed = new Queue<ILogEntry>();
-            while (entries.Count > 0)
+            while (incomingEntries.Count > 0)
             {
                 if (classifier != null)
                 {
-                    var entry = classifier.Classify(entries.Dequeue());
+                    var entry = classifier.Classify(incomingEntries.Dequeue());
                     processed.Enqueue(entry);
                 }
             }
@@ -111,7 +110,21 @@ namespace Sentinel.Logs
                 newEntries.AddRange(processed);
             }
 
-            OnPropertyChanged("NewEntries");
+            OnPropertyChanged(nameof(NewEntries));
+        }
+
+        public void LimitMessageCount(int maximumMessages)
+        {
+            lock (entries)
+            {
+                var messages = entries.Count;
+                var excessMessages = messages - maximumMessages;
+
+                if (excessMessages > 0)
+                {
+                    entries.RemoveRange(0, excessMessages);
+                }
+            }
         }
 
         private void OnPropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -122,10 +135,42 @@ namespace Sentinel.Logs
                 {
                     lock (entries)
                     {
-                        entries.AddRange(newEntries);
+                        var entriesToAppend = newEntries.ToList();
+
+                        // Look for any special command
+                        if (preferences != null && preferences.EnableClearCommand)
+                        {
+                            if (entriesToAppend.Any(entry => entry.Description == preferences.ClearCommandMatchText))
+                            {
+                                Trace.WriteLine("!!!!!!!!!!!! CLEAR COMMAND FOUND !!!!!!!!!!");
+                            }
+
+                            var indexOfClear = entriesToAppend.FindLastIndex(
+                                entry => entry.Description == preferences.ClearCommandMatchText);
+                            if (indexOfClear != -1)
+                            {
+                                Trace.WriteLine(
+                                    $"Clear command found (message {indexOfClear} of {newEntries.Count} incoming messages)");
+                                entriesToAppend = newEntries.Skip(indexOfClear + 1).ToList();
+                                Trace.WriteLine($"Message buffer of {entries.Count} messages being cleared");
+
+                                entries.Clear();
+                                OnPropertyChanged(nameof(Entries));
+
+                                Debug.Assert(entries.Count == 0, "should have cleared entries");
+
+                                newEntries.Clear();
+                                newEntries.AddRange(entriesToAppend);
+                                OnPropertyChanged(nameof(NewEntries));
+
+                                return;
+                            }
+                        }
+
+                        entries.AddRange(entriesToAppend);
                     }
 
-                    OnPropertyChanged("Entries");
+                    OnPropertyChanged(nameof(Entries));
                 }
             }
         }

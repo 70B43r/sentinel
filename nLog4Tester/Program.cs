@@ -1,5 +1,4 @@
-﻿// ReSharper disable once StyleCop.SA1300
-namespace nLog4Tester
+﻿namespace NLog4Tester
 {
     using System;
     using System.Collections.Generic;
@@ -18,7 +17,7 @@ namespace nLog4Tester
                                                                "Starting system",
                                                                "Closing system",
                                                                "Data exchange started",
-                                                               "Unknown issue encountered"
+                                                               "Unknown issue encountered",
                                                            };
 
         private static readonly List<string> Sources = new List<string>
@@ -26,35 +25,40 @@ namespace nLog4Tester
                                                                "Foo",
                                                                "Bar",
                                                                "LongSystemName",
-                                                               "Kernel32"
+                                                               "Kernel32",
                                                            };
 
-        public static void Main(string[] args)
+        public static void Main()
         {
-            const int SmallestSleep = 1000;
-            const int BiggestSleep = 2000;
+            const int smallestSleep = 100;
+            const int biggestSleep = 200;
+            const int clear = 100;
 
-            for (var i = 0;; i++)
+            for (var i = 0; ; i++)
             {
                 // Randomly generate a message:
                 var text = RandomMessage(i);
 
-                // Randomly assign a message
-                LogMessage(text);
+                if (clear > 0 && i % clear == 0)
+                {
+                    Log.Warn("Sending clear command '#!Clear'");
+                    text = "#!Clear";
+                }
 
-                Thread.Sleep(Random.Next(SmallestSleep, BiggestSleep));
+                // Randomly assign a message
+                LogMessage(text, i);
+
+                Thread.Sleep(Random.Next(smallestSleep, biggestSleep));
             }
 
             // ReSharper disable once FunctionNeverReturns
         }
 
-        private static void LogMessage(string text)
+        private static void LogMessage(string text, int sequence)
         {
+            MappedDiagnosticsContext.Set("UnitTest", $"Sequence = {sequence}");
+
             var randomType = Random.Next(0, 6);
-
-            var context = $"Context{randomType}";
-            MappedDiagnosticsContext.Set("UnitTest", context);
-
             switch (randomType)
             {
                 case 0:

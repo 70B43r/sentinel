@@ -10,7 +10,7 @@
     using WpfExtras;
 
     /// <summary>
-    /// Interaction logic for ConfigurationPage.xaml
+    /// Interaction logic for ConfigurationPage.xaml.
     /// </summary>
     public partial class ConfigurationPage : IWizardPage
     {
@@ -47,7 +47,7 @@
                 if (port != value)
                 {
                     port = value;
-                    OnPropertyChanged("Port");
+                    OnPropertyChanged(nameof(Port));
                 }
             }
         }
@@ -60,16 +60,13 @@
 
         public bool IsValid
         {
-            get
-            {
-                return isValid;
-            }
+            get => isValid;
             private set
             {
                 if (isValid != value)
                 {
                     isValid = value;
-                    OnPropertyChanged("IsValid");
+                    OnPropertyChanged(nameof(IsValid));
                 }
             }
         }
@@ -79,13 +76,13 @@
         public void AddChild(IWizardPage newItem)
         {
             children.Add(newItem);
-            OnPropertyChanged("Children");
+            OnPropertyChanged(nameof(Children));
         }
 
         public void RemoveChild(IWizardPage item)
         {
             children.Remove(item);
-            OnPropertyChanged("Children");
+            OnPropertyChanged(nameof(Children));
         }
 
         public object Save(object saveData)

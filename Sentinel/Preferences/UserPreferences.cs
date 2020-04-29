@@ -3,8 +3,8 @@
     using System.Collections.Generic;
     using System.Runtime.Serialization;
     using Common.Logging;
-    using Interfaces;
-    using Support.Wpf;
+    using Sentinel.Interfaces;
+    using Sentinel.Support.Wpf;
     using WpfExtras;
 
     /// <summary>
@@ -50,15 +50,23 @@
 
         private string contextProperty = "UnitTest";
 
+        private bool enableClearCommand = true;
+
+        private string clearCommandMatchText = "#!Clear";
+
+        private bool limitMessages = false;
+
+        private string maximumMessageCount;
+
         public UserPreferences()
         {
             PropertyChanged += (s, a) =>
+            {
+                if (a.PropertyName == nameof(ContextProperty))
                 {
-                    if (a.PropertyName == nameof(ContextProperty))
-                    {
-                        Log.Debug($"{a.PropertyName}={ContextProperty}");
-                    }
-                };
+                    Log.Debug($"{a.PropertyName}={ContextProperty}");
+                }
+            };
         }
 
         /// <summary>
@@ -70,10 +78,14 @@
         /// Gets an enumerable list of the available date formatting options.
         /// </summary>
         public IEnumerable<string> DateFormatOptions { get; } = new[]
-                                                                    {
-                                                                        "yyyy-MM-dd", "MMM-dd", "dd-MM-yyyy", "dd-MMM",
-                                                                        "MM-dd-yyyy", "dddd"
-                                                                    };
+        {
+            "yyyy-MM-dd",
+            "MMM-dd",
+            "dd-MM-yyyy",
+            "dd-MMM",
+            "MM-dd-yyyy",
+            "dddd",
+        };
 
         public IEnumerable<string> TimeFormatOptions { get; } = new[] { "HH:mm:ss;FFFF", "HH:mm:ss", "HH:mm" };
 
@@ -280,7 +292,7 @@
         /// <summary>
         /// Gets or sets a value indicating whether a visual padding correction should be used to
         /// tighten the rows in a list view.  Windows Vista and Windows 7 both use much more padding
-        /// around each row than Windows XP does.  Sometimes the XP look works better!
+        /// around each row than Windows XP does.  Sometimes the XP look works better.
         /// </summary>
         public bool UseTighterRows
         {
@@ -348,6 +360,58 @@
                 {
                     contextProperty = value;
                     OnPropertyChanged(nameof(ContextProperty));
+                }
+            }
+        }
+
+        public bool EnableClearCommand
+        {
+            get => enableClearCommand;
+            set
+            {
+                if (enableClearCommand != value)
+                {
+                    enableClearCommand = value;
+                    OnPropertyChanged(nameof(EnableClearCommand));
+                }
+            }
+        }
+
+        public string ClearCommandMatchText
+        {
+            get => clearCommandMatchText;
+            set
+            {
+                if (clearCommandMatchText != value)
+                {
+                    clearCommandMatchText = value;
+                    OnPropertyChanged(nameof(ClearCommandMatchText));
+                }
+            }
+        }
+
+        public bool LimitMessages
+        {
+            get => limitMessages;
+            set
+            {
+                if (value != limitMessages)
+                {
+                    limitMessages = value;
+                    OnPropertyChanged(nameof(LimitMessages));
+                }
+            }
+        }
+
+        public string MaximumMessageCount
+        {
+            get => maximumMessageCount;
+            set
+            {
+                if (maximumMessageCount != value)
+                {
+                    maximumMessageCount = value;
+                    OnPropertyChanged(nameof(MaximumMessageCount));
                 }
             }
         }

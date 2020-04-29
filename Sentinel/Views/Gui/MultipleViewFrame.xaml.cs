@@ -13,7 +13,7 @@
     using Sentinel.Views.Interfaces;
 
     /// <summary>
-    /// Interaction logic for MultipleViewFrame.xaml
+    /// Interaction logic for MultipleViewFrame.xaml.
     /// </summary>
     public partial class MultipleViewFrame : INotifyPropertyChanged, IWindowFrame
     {
@@ -73,7 +73,7 @@
                 if (primaryView != value)
                 {
                     primaryView = value;
-                    OnPropertyChanged("PrimaryView");
+                    OnPropertyChanged(nameof(PrimaryView));
                 }
             }
         }
@@ -90,7 +90,7 @@
                 if (primaryTitle != value)
                 {
                     primaryTitle = value;
-                    OnPropertyChanged("PrimaryTitle");
+                    OnPropertyChanged(nameof(PrimaryTitle));
                 }
             }
         }
@@ -107,7 +107,7 @@
                 if (secondaryTitle != value)
                 {
                     secondaryTitle = value;
-                    OnPropertyChanged("SecondaryTitle");
+                    OnPropertyChanged(nameof(SecondaryTitle));
                 }
             }
         }
@@ -124,7 +124,7 @@
                 if (secondaryView != value)
                 {
                     secondaryView = value;
-                    OnPropertyChanged("SecondaryView");
+                    OnPropertyChanged(nameof(SecondaryView));
                 }
             }
         }
@@ -143,7 +143,7 @@
                 if (log != value)
                 {
                     log = value;
-                    OnPropertyChanged("Log");
+                    OnPropertyChanged(nameof(Log));
                 }
             }
         }

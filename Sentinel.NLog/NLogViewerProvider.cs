@@ -12,17 +12,16 @@
 
     using Common.Logging;
 
-    using Interfaces;
-    using Interfaces.Providers;
-
+    using Sentinel.Interfaces;
     using Sentinel.Interfaces.CodeContracts;
+    using Sentinel.Interfaces.Providers;
 
     public class NLogViewerProvider : INetworkProvider
     {
-        private const int PumpFrequency = 100;
+        public static readonly IProviderRegistrationRecord ProviderRegistrationInformation
+            = new ProviderRegistrationInformation(new ProviderInfo());
 
-        public static readonly IProviderRegistrationRecord ProviderRegistrationInformation =
-            new ProviderRegistrationInformation(new ProviderInfo());
+        private const int PumpFrequency = 100;
 
         private static readonly DateTime Log4JDateBase = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
@@ -73,7 +72,9 @@
             }
             else
             {
-                Log.WarnFormat("{0} listener task is already active and can not be started again.", networkSettings.Protocol);
+                Log.WarnFormat(
+                    "{0} listener task is already active and can not be started again.",
+                    networkSettings.Protocol);
             }
         }
 
@@ -123,7 +124,11 @@
                         {
                             var bytes = listener.Receive(ref remoteEndPoint);
 
-                            Log.DebugFormat("Received {0} bytes from {1} ({2})", bytes.Length, remoteEndPoint.Address, networkSettings.Protocol);
+                            Log.DebugFormat(
+                                "Received {0} bytes from {1} ({2})",
+                                bytes.Length,
+                                remoteEndPoint.Address,
+                                networkSettings.Protocol);
 
                             var message = Encoding.UTF8.GetString(bytes, 0, bytes.Length);
                             lock (pendingQueue)
@@ -209,7 +214,7 @@
 
         private LogEntry DecodeEntry(string m)
         {
-            // Record the current date/time 
+            // Record the current date/time
             var receivedTime = DateTime.UtcNow;
 
             XNamespace log4J = "unique";
@@ -228,7 +233,8 @@
 
             var meta = new Dictionary<string, object>();
 
-            foreach (var propertyElement in record.Element(log4J + "properties")?.Elements() ?? Enumerable.Empty<XElement>())
+            foreach (var propertyElement in record.Element(log4J + "properties")?.Elements()
+                                            ?? Enumerable.Empty<XElement>())
             {
                 if (propertyElement.Name == log4J + "data")
                 {
@@ -277,7 +283,7 @@
                                 Thread = record.Attribute("thread")?.Value ?? string.Empty,
                                 Description = description,
                                 Type = type,
-                                MetaData = meta
+                                MetaData = meta,
                             };
             if (entry.Description.ToUpper().Contains("EXCEPTION"))
             {

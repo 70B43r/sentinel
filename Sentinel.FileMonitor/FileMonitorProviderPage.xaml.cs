@@ -17,7 +17,7 @@
     using WpfExtras;
 
     /// <summary>
-    ///   Interaction logic for FileMonitorProviderPage.xaml
+    ///   Interaction logic for FileMonitorProviderPage.xaml.
     /// </summary>
     public partial class FileMonitorProviderPage : IWizardPage, IDataErrorInfo
     {
@@ -28,11 +28,11 @@
         private string fileName = string.Empty;
 
         private bool loadExisting;
-        
+
         private double refresh;
-        
+
         private bool warnFileNotFound;
-        
+
         private bool isValid;
 
         public FileMonitorProviderPage()
@@ -50,55 +50,49 @@
             AddChild(new MessageFormatPage());
         }
 
+        public event PropertyChangedEventHandler PropertyChanged;
+
         public ICommand Browse { get; private set; }
 
         public string FileName
         {
-            get
-            {
-                return fileName;
-            }
+            get => fileName;
 
             set
             {
                 if (fileName != value)
                 {
                     fileName = value;
-                    OnPropertyChanged("FileName");
+                    OnPropertyChanged(nameof(FileName));
                 }
             }
         }
 
         public bool WarnFileNotFound
         {
-            get
-            {
-                return warnFileNotFound;
-            }
+            get => warnFileNotFound;
+
             set
             {
                 if (warnFileNotFound != value)
                 {
                     Trace.WriteLine("Setting WarnFileNotFound to " + value);
                     warnFileNotFound = value;
-                    OnPropertyChanged("WarnFileNotFound");
+                    OnPropertyChanged(nameof(WarnFileNotFound));
                 }
             }
         }
 
         public double Refresh
         {
-            get
-            {
-                return refresh;
-            }
+            get => refresh;
 
             set
             {
                 if (Math.Abs(refresh - value) > 0.01)
                 {
                     refresh = value;
-                    OnPropertyChanged("Refresh");
+                    OnPropertyChanged(nameof(Refresh));
                 }
             }
         }
@@ -109,10 +103,7 @@
 
         public bool LoadExisting
         {
-            get
-            {
-                return loadExisting;
-            }
+            get => loadExisting;
 
             set
             {
@@ -121,18 +112,6 @@
                     loadExisting = value;
                     OnPropertyChanged(nameof(LoadExisting));
                 }
-            }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void OnPropertyChanged(string propertyName)
-        {
-            var handler = PropertyChanged;
-            if (handler != null)
-            {
-                var e = new PropertyChangedEventArgs(propertyName);
-                handler(this, e);
             }
         }
 
@@ -146,60 +125,25 @@
 
         public bool IsValid
         {
-            get
-            {
-                return isValid;
-            }
+            get => isValid;
 
             private set
             {
                 if (isValid != value)
                 {
                     isValid = value;
-                    OnPropertyChanged("IsValid");
+                    OnPropertyChanged(nameof(IsValid));
                 }
             }
         }
 
-        public void AddChild(IWizardPage newItem)
-        {
-            children.Add(newItem);
-            OnPropertyChanged("Children");
-        }
-
-        public void RemoveChild(IWizardPage item)
-        {
-            children.Remove(item);
-            OnPropertyChanged("Children");
-        }
-
-        public object Save(object saveData)
-        {
-            Debug.Assert(saveData != null, "Expecting a non-null instance of a class to save settings into");
-            Debug.Assert(saveData is IProviderSettings, "Expecting save object to be an IProviderSettings");
-
-            var settings = saveData as IProviderSettings;
-
-            if (settings != null)
-            {
-                var fileSettings = settings as IFileMonitoringProviderSettings;
-
-                if (fileSettings != null)
-                {
-                    fileSettings.Update(fileName, (int)Refresh, LoadExisting);
-                    return fileSettings;
-                }
-
-                return new FileMonitoringProviderSettings(
-                    settings.Info,
-                    settings.Name,
-                    fileName,
-                    (int)Refresh,
-                    LoadExisting);
-            }
-
-            return saveData;
-        }
+        /// <summary>
+        ///   Gets an error message indicating what is wrong with this object.
+        /// </summary>
+        /// <returns>
+        ///   An error message indicating what is wrong with this object. The default is an empty string ("").
+        /// </returns>
+        public string Error => this["FileName"];
 
         /// <summary>
         ///   Gets the error message for the property with the given name.
@@ -225,13 +169,105 @@
             }
         }
 
+        public object Save(object saveData)
+        {
+            Debug.Assert(saveData != null, "Expecting a non-null instance of a class to save settings into");
+            Debug.Assert(saveData is IProviderSettings, "Expecting save object to be an IProviderSettings");
+
+            var settings = saveData as IProviderSettings;
+
+            if (settings != null)
+            {
+                if (settings is IFileMonitoringProviderSettings fileSettings)
+                {
+                    fileSettings.Update(fileName, (int)Refresh, LoadExisting);
+                    return fileSettings;
+                }
+
+                return new FileMonitoringProviderSettings(
+                    settings.Info,
+                    settings.Name,
+                    fileName,
+                    (int)Refresh,
+                    LoadExisting);
+            }
+
+            return saveData;
+        }
+
+        public void AddChild(IWizardPage newItem)
+        {
+            children.Add(newItem);
+            OnPropertyChanged(nameof(Children));
+        }
+
+        public void RemoveChild(IWizardPage item)
+        {
+            children.Remove(item);
+            OnPropertyChanged(nameof(Children));
+        }
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            var handler = PropertyChanged;
+            if (handler != null)
+            {
+                var e = new PropertyChangedEventArgs(propertyName);
+                handler(this, e);
+            }
+        }
+
+        private void BrowseForFile(object obj)
+        {
+            // Display the File Open Dialog.
+            var dlg = new OpenFileDialog
+                          {
+                              FileName = "logFile",
+                              DefaultExt = ".log",
+                              Multiselect = false,
+                              Filter = "Log files (.log)|*.log|Text documents (.txt)|*.txt|All files|*.*",
+                          };
+
+            var result = dlg.ShowDialog();
+
+            if (result == true)
+            {
+                FileName = dlg.FileName;
+            }
+        }
+
+        private void OnLoaded(object sender, RoutedEventArgs e)
+        {
+            Refresh = 250;
+        }
+
+        private void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName != "FileName")
+            {
+                return;
+            }
+
+            try
+            {
+                var fi = new FileInfo(FileName);
+                WarnFileNotFound = !fi.Exists;
+                IsValid = this["FileName"] == null;
+            }
+            catch (Exception)
+            {
+                // For exceptions, let the validation handler show the error.
+                WarnFileNotFound = false;
+                IsValid = false;
+            }
+        }
+
         private bool CheckSuppliedFilenameIsValid(string fileNameToValidate, out string reason)
         {
             try
             {
                 reason = null;
-                // ReSharper disable once ObjectCreationAsStatement
-                new FileInfo(fileNameToValidate);
+                _ = new FileInfo(fileNameToValidate);
                 return true;
             }
             catch (UnauthorizedAccessException)
@@ -256,65 +292,6 @@
             }
 
             return false;
-        }
-
-        /// <summary>
-        ///   Gets an error message indicating what is wrong with this object.
-        /// </summary>
-        /// <returns>
-        ///   An error message indicating what is wrong with this object. The default is an empty string ("").
-        /// </returns>
-        public string Error
-        {
-            get
-            {
-                return this["FileName"];
-            }
-        }
-
-        private void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName != "FileName")
-            {
-                return;
-            }
-
-            try
-            {
-                var fi = new FileInfo(FileName);
-                WarnFileNotFound = !fi.Exists;
-                IsValid = this["FileName"] == null;
-            }
-            catch (Exception)
-            {
-                // For exceptions, let the validation handler show the error.
-                WarnFileNotFound = false;
-                IsValid = false;
-            }
-        }
-
-        private void BrowseForFile(object obj)
-        {
-            // Display the File Open Dialog.
-            var dlg = new OpenFileDialog
-                          {
-                              FileName = "logFile",
-                              DefaultExt = ".log",
-                              Multiselect = false,
-                              Filter = "Log files (.log)|*.log|Text documents (.txt)|*.txt|All files|*.*"
-                          };
-
-            var result = dlg.ShowDialog();
-
-            if (result == true)
-            {
-                FileName = dlg.FileName;
-            }
-        }
-
-        private void OnLoaded(object sender, RoutedEventArgs e)
-        {
-            Refresh = 250;
         }
     }
 }

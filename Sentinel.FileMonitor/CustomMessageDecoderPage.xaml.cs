@@ -10,7 +10,7 @@
     using WpfExtras;
 
     /// <summary>
-    /// Interaction logic for CustomMessageDecoderPage.xaml
+    /// Interaction logic for CustomMessageDecoderPage.xaml.
     /// </summary>
     public partial class CustomMessageDecoderPage : IWizardPage, IDataErrorInfo
     {
@@ -34,120 +34,62 @@
             PropertyChanged += PropertyChangedHandler;
         }
 
-        private void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
-        {
-            if ( e.PropertyName == "CustomFormat")
-            {
-                IsValid = this["CustomFormat"] == null;
-            }
-        }
-
-        public string CustomFormat
-        {
-            get
-            {
-                return customFormat;
-            }
-            set
-            {
-                if (customFormat == value) return;
-                customFormat = value;
-                OnPropertyChanged("CustomFormat");
-            }
-        }
-
-        #region Implementation of INotifyPropertyChanged
-
         public event PropertyChangedEventHandler PropertyChanged;
 
-        protected virtual void OnPropertyChanged(string propertyName)
-        {
-            PropertyChangedEventHandler handler = PropertyChanged;
-            if (handler != null)
-            {
-                PropertyChangedEventArgs e = new PropertyChangedEventArgs(propertyName);
-                handler(this, e);
-            }
-        }
+        public string Title => "Custom Message Decoder";
 
-        #endregion
+        public ReadOnlyObservableCollection<IWizardPage> Children => readonlyChildren;
 
-        #region Implementation of IWizardPage
-
-        public string Title
-        {
-            get
-            {
-                return "Custom Message Decoder";
-            }
-        }
-
-        public ReadOnlyObservableCollection<IWizardPage> Children
-        {
-            get
-            {
-                return readonlyChildren;
-            }
-        }
-
-        public string Description
-        {
-            get
-            {
-                return "Specify how to decompose the message into its individual fields.";
-            }
-        }
+        public string Description => "Specify how to decompose the message into its individual fields.";
 
         public bool IsValid
         {
-            get
-            {
-                return isValid;
-            }
+            get => isValid;
+
             set
             {
-                if (isValid == value) return;
-                isValid = value;
-                OnPropertyChanged("IsValid");
+                if (isValid != value)
+                {
+                    isValid = value;
+                    OnPropertyChanged(nameof(IsValid));
+                }
             }
         }
 
-        public Control PageContent
+        public Control PageContent => this;
+
+        public string CustomFormat
         {
-            get
+            get => customFormat;
+
+            set
             {
-                return this;
+                if (customFormat != value)
+                {
+                    customFormat = value;
+                    OnPropertyChanged(nameof(CustomFormat));
+                }
             }
         }
 
-
-        public void AddChild(IWizardPage newItem)
+        /// <summary>
+        /// Gets an error message indicating what is wrong with this object.
+        /// </summary>
+        /// <returns>
+        /// An error message indicating what is wrong with this object. The default is a null.</returns>
+        public string Error
         {
-            children.Add(newItem);
-            OnPropertyChanged("Children");
+            get => error;
+
+            private set
+            {
+                if (error != value)
+                {
+                    error = value;
+                    OnPropertyChanged(nameof(Error));
+                }
+            }
         }
-
-        public void RemoveChild(IWizardPage item)
-        {
-            children.Remove(item);
-            OnPropertyChanged("Children");
-        }
-
-        public object Save(object saveData)
-        {
-            // Todo: Implement page save....
-            return saveData;
-
-            //Debug.Assert(settings != null,
-            //             "Settings not set, did the previous page not provide this?  " +
-            //             "Was SuggestPreviousPage not called by the caller of this class?");
-            //settings.MessageDecoder = CustomFormat;
-            //return settings;
-        }
-
-        #endregion
-
-        #region Implementation of IDataErrorInfo
 
         /// <summary>
         /// Gets the error message for the property with the given name.
@@ -163,7 +105,7 @@
                 {
                     string err = null;
 
-                    if ( String.IsNullOrEmpty(CustomFormat) )
+                    if (string.IsNullOrEmpty(CustomFormat))
                     {
                         err = "Pattern can not be empty";
                     }
@@ -172,13 +114,13 @@
                         // See whether the string validates as a Regex
                         try
                         {
-                            Regex r = new Regex(CustomFormat);
+                            _ = new Regex(CustomFormat);
 
                             // See if it contains the minimal fields
-                            if ( !ContainsKeyFields(CustomFormat))
+                            if (!ContainsKeyFields(CustomFormat))
                             {
-                                err = "The pattern does not define any of the core fields, Description, Type or " +
-                                      "DateTime.  At least one of these should be defined.";
+                                err = "The pattern does not define any of the core fields, Description, Type or "
+                                      + "DateTime.  At least one of these should be defined.";
                             }
                         }
                         catch (ArgumentException)
@@ -195,13 +137,45 @@
             }
         }
 
+        public object Save(object saveData)
+        {
+            // Todo: Implement page save....
+            return saveData;
+
+            //// Debug.Assert(settings != null,
+            ////             "Settings not set, did the previous page not provide this?  " +
+            ////             "Was SuggestPreviousPage not called by the caller of this class?");
+            //// settings.MessageDecoder = CustomFormat;
+            //// return settings;
+        }
+
+        public void AddChild(IWizardPage newItem)
+        {
+            children.Add(newItem);
+            OnPropertyChanged(nameof(Children));
+        }
+
+        public void RemoveChild(IWizardPage item)
+        {
+            children.Remove(item);
+            OnPropertyChanged(nameof(Children));
+        }
+
+        protected virtual void OnPropertyChanged(string propertyName)
+        {
+            PropertyChangedEventHandler handler = PropertyChanged;
+            if (handler != null)
+            {
+                PropertyChangedEventArgs e = new PropertyChangedEventArgs(propertyName);
+                handler(this, e);
+            }
+        }
+
         private static bool ContainsKeyFields(string pattern)
         {
             string p = pattern.ToLower();
 
-            if (p.Contains("(?<description>") ||
-                p.Contains("(?<type>") ||
-                p.Contains("(?<datetime>"))
+            if (p.Contains("(?<description>") || p.Contains("(?<type>") || p.Contains("(?<datetime>"))
             {
                 return true;
             }
@@ -209,32 +183,19 @@
             return false;
         }
 
-        /// <summary>
-        /// Gets an error message indicating what is wrong with this object.
-        /// </summary>
-        /// <returns>
-        /// An error message indicating what is wrong with this object. The default is a null.</returns>
-        public string Error
+        private void PropertyChangedHandler(object sender, PropertyChangedEventArgs e)
         {
-            get
+            if (e.PropertyName == "CustomFormat")
             {
-                return error;
-            }
-            private set
-            {
-                if (error == value) return;
-                error = value;
-                OnPropertyChanged("Error");
+                IsValid = this["CustomFormat"] == null;
             }
         }
-
-        #endregion
 
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
             // Set the custom format after the constructor to force the validation
             // to show immediately, this will retrigger the validation.
-            OnPropertyChanged("CustomFormat");
+            OnPropertyChanged(nameof(CustomFormat));
         }
     }
 }

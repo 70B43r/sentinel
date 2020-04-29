@@ -59,5 +59,18 @@ namespace Sentinel.Interfaces
 
         [DataMember]
         string ContextProperty { get; set; }
+
+        [DataMember]
+        bool EnableClearCommand { get; set; }
+
+        [DataMember]
+        string ClearCommandMatchText { get; set; }
+
+        [DataMember]
+        bool LimitMessages { get; set; }
+
+        // TODO: this should be an integer bound to a numeric control.
+        [DataMember]
+        string MaximumMessageCount { get; set; }
     }
 }

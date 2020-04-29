@@ -11,7 +11,7 @@
     using WpfExtras;
 
     /// <summary>
-    /// Interaction logic for NetworkConfigurationPage.xaml
+    /// Interaction logic for NetworkConfigurationPage.xaml.
     /// </summary>
     public partial class NetworkConfigurationPage : IWizardPage
     {
@@ -22,10 +22,6 @@
         private int port;
 
         private bool isUdp = true;
-
-        public virtual bool SupportsTcp => true;
-
-        public virtual bool SupportsUdp => true;
 
         public NetworkConfigurationPage()
         {
@@ -40,41 +36,35 @@
             Port = 9999;
         }
 
-        private void SelectProviderPage_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == "Port")
-            {
-                bool state = port > 2000;
-                Trace.WriteLine($"Setting PageValidates to {state}");
-                IsValid = state;
-            }
-        }
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        public virtual bool SupportsTcp => true;
+
+        public virtual bool SupportsUdp => true;
 
         public int Port
         {
-            get
-            {
-                return port;
-            }
+            get => port;
             set
             {
-                if (port == value) return;
-                port = value;
-                OnPropertyChanged("Port");
+                if (port != value)
+                {
+                    port = value;
+                    OnPropertyChanged(nameof(Port));
+                }
             }
         }
-					
+
         public bool IsUdp
         {
-            get
-            {
-                return isUdp;
-            }
+            get => isUdp;
             set
             {
-                if (isUdp == value) return;
-                isUdp = value;
-                OnPropertyChanged("IsUdp");
+                if (isUdp != value)
+                {
+                    isUdp = value;
+                    OnPropertyChanged(nameof(IsUdp));
+                }
             }
         }
 
@@ -86,16 +76,15 @@
 
         public bool IsValid
         {
-            get
-            {
-                return isValid;
-            }
+            get => isValid;
 
             private set
             {
-                if (isValid == value) return;
-                isValid = value;
-                OnPropertyChanged("IsValid");
+                if (isValid != value)
+                {
+                    isValid = value;
+                    OnPropertyChanged(nameof(IsValid));
+                }
             }
         }
 
@@ -104,19 +93,23 @@
         public void AddChild(IWizardPage newItem)
         {
             children.Add(newItem);
-            OnPropertyChanged("Children");
+            OnPropertyChanged(nameof(Children));
         }
 
         public void RemoveChild(IWizardPage item)
         {
             children.Remove(item);
-            OnPropertyChanged("Children");
+            OnPropertyChanged(nameof(Children));
         }
 
         public object Save(object saveData)
         {
-            Debug.Assert(saveData != null, "Expecting the save-data component to have details from the previous pages.");
-            Debug.Assert(saveData is IProviderSettings, "Expecting the save-data component to be of an IProviderSettings type.");
+            Debug.Assert(
+                saveData != null,
+                "Expecting the save-data component to have details from the previous pages.");
+            Debug.Assert(
+                saveData is IProviderSettings,
+                "Expecting the save-data component to be of an IProviderSettings type.");
 
             var previousInfo = (IProviderSettings)saveData;
 
@@ -125,11 +118,9 @@
                            Name = previousInfo.Name,
                            Info = previousInfo.Info,
                            Port = Port,
-                           Protocol = IsUdp ? NetworkProtocol.Udp : NetworkProtocol.Tcp
+                           Protocol = IsUdp ? NetworkProtocol.Udp : NetworkProtocol.Tcp,
                        };
         }
-
-        public event PropertyChangedEventHandler PropertyChanged;
 
         protected void OnPropertyChanged(string propertyName)
         {
@@ -146,6 +137,16 @@
             // Establish default selection
             Debug.Assert(SupportsUdp || SupportsTcp, "The provider needs to support at least one of UDP or TCP");
             IsUdp = SupportsUdp;
+        }
+
+        private void SelectProviderPage_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == "Port")
+            {
+                bool state = port > 2000;
+                Trace.WriteLine($"Setting PageValidates to {state}");
+                IsValid = state;
+            }
         }
     }
 }

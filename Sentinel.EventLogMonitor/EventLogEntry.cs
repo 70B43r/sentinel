@@ -4,15 +4,11 @@
     using System.Diagnostics;
     using System.Text;
 
-    using Interfaces;
-
-    using Sentinel.Interfaces;
+    using Sentinel.EventLogMonitor.Interfaces;
     using Sentinel.Interfaces.CodeContracts;
 
     internal class EventLogEntry : IEventLogEntry
     {
-        private System.Diagnostics.EventLogEntry Entry { get; }
-
         public EventLogEntry(System.Diagnostics.EventLogEntry entry)
         {
             entry.ThrowIfNull(nameof(entry));
@@ -34,6 +30,8 @@
         public string Source => Entry.Source;
 
         public string UserName => Entry.UserName;
+
+        private System.Diagnostics.EventLogEntry Entry { get; }
 
         public override string ToString()
         {

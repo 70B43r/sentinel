@@ -7,7 +7,7 @@
     using WpfExtras;
 
     /// <summary>
-    /// Interaction logic for AddNewLoggerPage.xaml
+    /// Interaction logic for AddNewLoggerPage.xaml.
     /// </summary>
     public partial class AddNewLoggerWelcomePage : IWizardPage
     {
@@ -73,13 +73,13 @@
         public void AddChild(IWizardPage newItem)
         {
             children.Add(newItem);
-            OnPropertyChanged("Children");
+            OnPropertyChanged(nameof(Children));
         }
 
         public void RemoveChild(IWizardPage item)
         {
             children.Remove(item);
-            OnPropertyChanged("Children");
+            OnPropertyChanged(nameof(Children));
         }
 
         public object Save(object saveData)

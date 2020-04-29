@@ -28,7 +28,7 @@ namespace Sentinel.Highlighters
         /// <summary>
         /// Initializes a new instance of the <see cref="HighlightingSelector"/> class.
         /// </summary>
-        /// <param name="messagesOnMouseDoubleClick">Action to perform on double click</param>
+        /// <param name="messagesOnMouseDoubleClick">Action to perform on double click.</param>
         public HighlightingSelector(Action<object, MouseButtonEventArgs> messagesOnMouseDoubleClick)
         {
             MessagesOnMouseDoubleClick = messagesOnMouseDoubleClick;
@@ -49,9 +49,9 @@ namespace Sentinel.Highlighters
                                                     {
                                                         ConverterParameter = highlighter,
                                                         Converter = new HighlighterConverter(highlighter),
-                                                        Mode = BindingMode.OneWay
+                                                        Mode = BindingMode.OneWay,
                                                     },
-                                      Value = "Match"
+                                      Value = "Match",
                                   };
 
                 if (highlighter.Style != null)
@@ -95,16 +95,16 @@ namespace Sentinel.Highlighters
                             var style = new Style(typeof(ListViewItem));
 
                             var trigger = new DataTrigger
-                                              {
-                                                  Binding =
-                                                      new Binding
-                                                          {
-                                                              ConverterParameter = highlighter,
-                                                              Converter = new HighlighterConverter(highlighter),
-                                                              Mode = BindingMode.OneWay
-                                                          },
-                                                  Value = "Match"
-                                              };
+                            {
+                                Binding =
+                                    new Binding
+                                    {
+                                        ConverterParameter = highlighter,
+                                        Converter = new HighlighterConverter(highlighter),
+                                        Mode = BindingMode.OneWay,
+                                    },
+                                Value = "Match",
+                            };
 
                             if (highlighter.Style != null)
                             {
@@ -151,7 +151,7 @@ namespace Sentinel.Highlighters
         /// specified item.
         /// </summary>
         /// <param name="item">Item to use when deciding which style to use.</param>
-        /// <param name="container">Container making the request?</param>
+        /// <param name="container">Container making the request.</param>
         /// <returns>Style to use for displaying of item.</returns>
         public override Style SelectStyle(object item, DependencyObject container)
         {
